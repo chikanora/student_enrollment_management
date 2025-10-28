@@ -4,25 +4,38 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+/**
+ * Console-based Student Enrollment Management System
+ * Based off of the provided pseudocode: admin login (3 attempts), CRUD methods
+ * Uses LinkedHashMap to preserve insertion order when listing students
+ */
 public class Main
 {
     // Data structures/utilities/variables
+    // In-memory store of students keyed by generated ID: "First_Last_counter"
     private static final Map<String, Student> students = new LinkedHashMap<>();
+    // Counter used to make unique IDs when adding students
     private static int studentCounter = 1;
+    // Scanner input for the entire app
     private static final Scanner input = new Scanner(System.in);
 
+    // Prompt helper - prompts for a line and return the trimmed user input
+    // Use this for required inputs where blank is not meaningful
     private static String promptLine(String prompt)
     {
         System.out.print(prompt);
         return input.nextLine().trim();
     }
 
+    // Prompt for a line and return the raw user input (not trimmed, may be blank)
+    // Use this in "blank to skip" flows when editing
     private static String promptLineAllowBlank(String prompt)
     {
         System.out.print(prompt);
         return input.nextLine();
     }
 
+    // Prompt repeatedly until a valid integer is entered
     private static int promptInt(String prompt)
     {
         while (true)
@@ -40,6 +53,7 @@ public class Main
         }
     }
 
+    // Prompt repeatedly until a valid double is entered
     private static double promptDouble(String prompt)
     {
         while (true)
@@ -58,6 +72,8 @@ public class Main
         }
     }
 
+    // Edit helpers
+    // Generic field editor - shows the current value and lets the user enter a new value or leave blank to skip
     private static void editFieldString(String fieldPrompt, Supplier<String> getter, Consumer<String> setter)
     {
         String current = getter.get();
@@ -74,6 +90,7 @@ public class Main
         }
     }
 
+    // Generic int editor - shows the current value and lets the user enter a new value or leave blank to skip
     private static void editFieldInt(String fieldPrompt, Supplier<Integer> getter, Consumer<Integer> setter)
     {
         String current = String.valueOf(getter.get());
@@ -98,6 +115,7 @@ public class Main
         }
     }
 
+    // Specialized GPA editor with range validation and "blank to skip" behavior
     private static void editGPA(Student student)
     {
         System.out.println("Enter GPA (0.0 - 4.0), leave blank to skip. Current GPA: " + student.getGpaPrev());
@@ -116,11 +134,13 @@ public class Main
                 }
                 else
                 {
+                    // Keep old value if out of range
                     System.out.println("Invalid GPA range.");
                 }
             }
             catch (NumberFormatException e)
             {
+                // Keep old value if invalid
                 System.out.println("Invalid double input. No changes made.");
             }
         }
@@ -130,7 +150,9 @@ public class Main
         }
     }
 
-    // Admin login
+    // Admin login - login up to 3 attempts
+    // Usernames and passwords are parallel arrays
+    // Returns true on success, false after 3 failures
     private static boolean adminLogin()
     {
         String[] usernames = {"Mark", "Daniel", "Ethan", "Donald"};
@@ -145,6 +167,7 @@ public class Main
             String username = promptLine("Enter username: ");
             String password = promptLine("Enter password: ");
 
+            // Validate credentials (index-matched)
             for (int i = 0; i < usernames.length; i++)
             {
                 if (username.equals(usernames[i]) && password.equals(passwords[i]))
@@ -156,6 +179,7 @@ public class Main
 
             if (!loggedIn)
             {
+                // Feedback & attempt increment
                 System.out.println("Invalid login credentials. Please try again (Attempt " + (attempt + 1) + " of 3 ).");
                 attempt =  attempt + 1;
             }
@@ -163,6 +187,7 @@ public class Main
 
         if (loggedIn)
         {
+            // Doesn't track the specific username beyond this point
             System.out.println("Login successful. Welcome " + promptLastEnteredUsernameNote());
             return true;
         }
@@ -174,10 +199,12 @@ public class Main
     }
 
     // Username variables
+    // Last username entered (used only for the welcome line display)
     private static String lastEnteredUsername = "";
 
     private static String promptLastEnteredUsernameNote()
     {
+        // Returns the last stored username
         return lastEnteredUsername;
     }
 
@@ -255,11 +282,13 @@ public class Main
         System.out.println("=== Add New Student ===");
         Student student = new Student();
 
+        // Read required fields
         student.setFirstName(promptLine("Enter first name: "));
         student.setLastName(promptLine("Enter last name: "));
         student.setDateOfBirth(promptLine("Enter date of birth (YYYY-MM-DD): "));
         student.setGender(promptLine("Enter gender: "));
 
+        // GPA with range validation (0.0 - 4.0)
         while (true)
         {
             double gpa = promptDouble("Enter GPA (0.0 - 4.0): ");
@@ -275,9 +304,11 @@ public class Main
             }
         }
 
+        // Current semester: free-form integer per pseudocode
         student.setCurrentSemester(promptInt("Enter current semester number: "));
         student.setProgram(promptLine("Enter program name: "));
 
+        // Course count with range validation (0 - 12)
         while (true)
         {
             int number = promptInt("Enter number of courses (0 - 12): ");
@@ -293,15 +324,18 @@ public class Main
             }
         }
 
+        // Generate unique ID: First_Last_counter
         String id = student.getFirstName() + "_" + student.getLastName() + "_" + studentCounter;
         studentCounter = studentCounter + 1;
 
+        // Prevent accidental overwrite if same ID already exists
         if (students.containsKey(id))
         {
             System.out.println("Error: A student with this name already exists. Try again.");
             return;
         }
 
+        // Save and confirm
         students.put(id, student);
         System.out.println("Student added successfully with ID: " + id);
     }
@@ -312,6 +346,7 @@ public class Main
         System.out.println("=== Modify Student ===");
         String id = promptLine("Enter student ID: ");
 
+        // Validate ID exists
         if (!students.containsKey(id))
         {
             System.out.println("Error: No student with this ID.");
@@ -321,10 +356,12 @@ public class Main
         Student student = students.get(id);
         String choice;
 
+        // Show a brief summary of the current record
         System.out.println("Current Record:");
         System.out.println(student.getFirstName() + " " + student.getLastName() + " | " + student.getProgram() +
                 " | GPA: " + student.getGpaPrev());
 
+        // Edit loop: continue until user chooses Q to exit
         do
         {
             System.out.println();
@@ -354,6 +391,7 @@ public class Main
                 case "7" -> editFieldString("Enter new program name", student::getProgram, student::setProgram);
                 case "8" ->
                 {
+                    // Special-case with range validation, similar to Add Student
                     String current = String.valueOf(student.getNumCourses());
                     String line = promptLineAllowBlank("Enter new number of courses (0 - 12) (current: " + current + "): ");
 
@@ -386,6 +424,7 @@ public class Main
                 case "Q", "q" -> System.out.println("Finished editing.");
                 default ->
                 {
+                    // Guard against invalid choices while staying in the loop
                     if (!choice.equalsIgnoreCase("Q"))
                     {
                         System.out.println("Invalid choice. Please try again.");
@@ -396,6 +435,7 @@ public class Main
         }
         while (!choice.equalsIgnoreCase("Q"));
 
+        // Re-save the record
         students.put(id, student);
         System.out.println("Student record updated.");
     }
@@ -437,6 +477,7 @@ public class Main
             return;
         }
 
+        // Iterate in insertion order (LinkedHashMap)
         for (Map.Entry<String, Student> entry : students.entrySet())
         {
             String id = entry.getKey();
@@ -453,6 +494,7 @@ public class Main
     {
         System.out.println("=== Welcome to Student Enrollment Management System ===");
 
+        // Require successful login; exit early upon failure
         if (!adminLogin())
         {
             return;
@@ -460,6 +502,7 @@ public class Main
 
         String choice;
 
+        // Main menu loop
         do
         {
             System.out.println();
@@ -492,6 +535,7 @@ public class Main
 
     public static void main(String[] args)
     {
+        // Entry point
         mainMenu();
     }
 }
