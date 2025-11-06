@@ -16,7 +16,11 @@ class Student:
 students = {}
 
 # Counter used to make unique IDs when adding students
-studentCounter = 1 
+studentCounter = 1
+
+# Current logged-in user info
+currentUsername = ""
+currentUserIsAdmin = False 
 
 # Validate DOB format (YYYY-MM-DD)
 def validateDateOfBirth(dateOfBirth):
@@ -40,9 +44,12 @@ def editField(fieldPrompt, currentValue):
 # Admin login - login up to 3 attempts
 # Usernames and passwords are parallel arrays
 # Returns true on success, false after 3 failures
-def adminLogin():
+def login():
+    global currentUsername, currentUserIsAdmin
+    
     usernames = ["Mark", "Daniel", "Ethan", "Donald"]
     passwords = ["mark123", "daniel678", "ethan999", "donald345"]
+    isAdmin = [True, False, True, False]
     loggedIn = False
     attempt = 0
 
@@ -52,10 +59,12 @@ def adminLogin():
         username = input("Enter username: ")
         password = input("Enter password: ")
 
-        # Validate credentials (index-matched)
+        # Validate credentials (index-matched) & Check if user is admin
         for i in range(len(usernames)):
             if username == usernames[i] and password == passwords[i]:
                 loggedIn = True
+                currentUsername = username
+                currentUserIsAdmin = isAdmin[i]
                 break
 
         if not loggedIn:
@@ -64,8 +73,7 @@ def adminLogin():
             attempt += 1
 
     if loggedIn:
-        # Doesn't track the specific username beyond this point
-        print("Login successful. Welcome " + username)
+        print("Login successful. Welcome " + currentUsername + ". You are " + ("an admin." if currentUserIsAdmin else "a normal user."))
         return True
     else:
         print("Too many failed attempts. Access denied.")
@@ -73,8 +81,13 @@ def adminLogin():
 
 # Add student
 def addStudent():
-    global studentCounter, students
-    
+    global studentCounter, students, currentUserIsAdmin
+
+    # Check if user is admin
+    if not currentUserIsAdmin:
+        print("Error: You are not authorized to add students.")
+        return
+
     print("=== Add New Student ===")
     student = Student("", "", "", "", 0.0, 0, "", 0)
     
@@ -133,7 +146,12 @@ def addStudent():
     
 # Modify student
 def modifyStudent():
-    global students
+    global students, currentUserIsAdmin
+
+    # Check if user is admin
+    if not currentUserIsAdmin:
+        print("Error: You are not authorized to modify students.")
+        return
     
     print("=== Modify Student ===")
     id = input("Enter student ID: ")
@@ -214,7 +232,12 @@ def modifyStudent():
 
 # Remove student
 def removeStudent():
-    global students
+    global students, currentUserIsAdmin
+
+    # Check if user is admin
+    if not currentUserIsAdmin:
+        print("Error: You are not authorized to remove students.")
+        return
     
     print("=== Remove Student ===")
     id = input("Enter student ID: ")
@@ -248,7 +271,7 @@ def mainMenu():
     print("=== Welcome to Student Enrollment Management System ===")
 
     # Require successful login; exit early upon failure
-    if not adminLogin():
+    if not login():
         return
 
     choice = ""
