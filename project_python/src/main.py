@@ -1,15 +1,5 @@
 from datetime import datetime
-
-class Student:
-    def __init__(self, firstName, lastName, dateOfBirth, gender, gpaPrev, currentSemester, program, numCourses):
-        self.firstName = firstName
-        self.lastName = lastName
-        self.dateOfBirth = dateOfBirth
-        self.gender = gender
-        self.gpaPrev = gpaPrev
-        self.currentSemester = currentSemester
-        self.program = program
-        self.numCourses = numCourses
+from models.Student import Student
 
 # Data structures/utilities/variables
 # In-memory store of students keyed by generated ID: "First_Last_counter"
