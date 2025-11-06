@@ -172,30 +172,20 @@ public class Main
             {
                 if (username.equals(usernames[i]) && password.equals(passwords[i]))
                 {
-                    loggedIn = true;
-                    break;
+                    // Logged in successful
+                    System.out.println("Logged in successfully. Welcome " + username);
+                    return true;
                 }
             }
 
-            if (!loggedIn)
-            {
-                // Feedback & attempt increment
-                System.out.println("Invalid login credentials. Please try again (Attempt " + (attempt + 1) + " of 3 ).");
-                attempt =  attempt + 1;
-            }
+            // Login failed, add one attempt
+            System.out.println("Invalid login credentials. Please try again (Attempt " + (attempt + 1) + " of 3 ).");
+            attempt = attempt + 1;
         }
 
-        if (loggedIn)
-        {
-            // Doesn't track the specific username beyond this point
-            System.out.println("Login successful. Welcome " + promptLastEnteredUsernameNote());
-            return true;
-        }
-        else
-        {
-            System.out.println("Too many failed attempts. Access denied.");
-            return false;
-        }
+        // Attempt max reached, deny user
+        System.out.println("Too many failed attempts. Access denied.");
+        return false;
     }
 
     // Username variables
